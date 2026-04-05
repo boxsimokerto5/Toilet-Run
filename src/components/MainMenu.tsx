@@ -1,11 +1,18 @@
+import { useEffect } from "react";
 import { motion } from "motion/react";
 import { Play, ShieldCheck } from "lucide-react";
+import { AdService } from "../services/AdService";
 
 interface MainMenuProps {
   onPlay: () => void;
 }
 
 export default function MainMenu({ onPlay }: MainMenuProps) {
+  useEffect(() => {
+    // Show banner when menu loads
+    AdService.showBanner("startio-banner");
+  }, []);
+
   return (
     <div className="relative min-h-screen w-full overflow-hidden flex flex-col items-center justify-center bg-slate-100">
       {/* Blurred Background Blobs */}
@@ -52,6 +59,13 @@ export default function MainMenu({ onPlay }: MainMenuProps) {
         >
           <Play fill="white" size={32} className="text-white ml-1" />
         </motion.button>
+      </div>
+
+      {/* Ad Banner Container */}
+      <div className="absolute bottom-4 w-full flex justify-center z-20">
+        <div id="startio-banner" className="min-h-[50px] w-full max-w-[320px] flex items-center justify-center bg-slate-200/50 rounded-lg overflow-hidden">
+          {/* Ad will be injected here */}
+        </div>
       </div>
 
       {/* Bottom Left Shield Icon */}

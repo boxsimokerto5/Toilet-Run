@@ -4,6 +4,7 @@ import MainMenu from "./components/MainMenu";
 import Instructions from "./components/Instructions";
 import Game from "./components/Game";
 import { AnimatePresence, motion } from "motion/react";
+import { AdService } from "./services/AdService";
 
 type AppState = "SPLASH" | "MAIN_MENU" | "INSTRUCTIONS" | "GAME";
 
@@ -23,6 +24,8 @@ export default function App() {
   };
 
   const handleGoToInstructions = () => {
+    // Show interstitial before going to instructions
+    AdService.showInterstitial();
     setAppState("INSTRUCTIONS");
   };
 
@@ -31,6 +34,8 @@ export default function App() {
   };
 
   const handleBackToMenu = () => {
+    // Show interstitial when coming back to menu
+    AdService.showInterstitial();
     setAppState("MAIN_MENU");
   };
 
