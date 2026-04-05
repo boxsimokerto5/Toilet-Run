@@ -5,14 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Toilet Run Mobile',
   webDir: 'dist',
   server: {
-    allowNavigation: [
-      'play.famobi.com',
-      '*.famobi.com',
-      '*.google-analytics.com',
-      '*.googletagmanager.com',
-      '*.google.com',
-      '*.gstatic.com'
-    ]
+    allowNavigation: ['*']
   }
 };
 
