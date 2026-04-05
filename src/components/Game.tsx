@@ -49,8 +49,9 @@ export default function Game({ onBack }: GameProps) {
           src="https://play.famobi.com/toilet-run"
           className="w-full h-full border-none"
           title="Toilet Run Game"
-          allow="autoplay; fullscreen; pointer-lock"
+          allow="autoplay; fullscreen; pointer-lock; accelerometer; gyroscope; payment"
           referrerPolicy="no-referrer"
+          sandbox="allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-presentation allow-scripts allow-same-origin"
         />
       </div>
       

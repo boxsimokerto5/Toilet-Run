@@ -35,6 +35,9 @@ jobs:
       - name: Add Capacitor Android
         run: |
           npx cap add android
+          # Copy original icon-source.svg to icon.svg for the generator tool
+          cp assets/icon-source.svg assets/icon.svg
+          npx @capacitor/assets generate --android
           npx cap sync android
 
       - name: Generate Keystore
