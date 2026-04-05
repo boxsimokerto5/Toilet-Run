@@ -1,0 +1,98 @@
+name: Build Android APK & AAB
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Web App
+        run: npm run build
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Add Capacitor Android
+        run: |
+          npx cap add android
+          npx cap sync android
+
+      - name: Generate Keystore
+        run: |
+          keytool -genkey -v -keystore release.keystore -alias toilet-run-alias -keyalg RSA -keysize 2048 -validity 10000 -storepass "toiletrun123" -keypass "toiletrun123" -dname "CN=ToiletRun, OU=Mobile, O=Game, L=Jakarta, S=DKI, C=ID"
+
+      - name: Build APK (Release)
+        run: |
+          cd android
+          ./gradlew assembleRelease
+          cd ..
+
+      - name: Build AAB (Release)
+        run: |
+          cd android
+          ./gradlew bundleRelease
+          cd ..
+
+      - name: Sign APK
+        run: |
+          # Find the unsigned APK
+          APK_PATH=$(find android/app/build/outputs/apk/release -name "*-release-unsigned.apk" | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            APK_PATH=$(find android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          fi
+          
+          # Sign it
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA256 -keystore release.keystore -storepass "toiletrun123" "$APK_PATH" toilet-run-alias
+          
+          # Zipalign (optional but recommended)
+          # Note: build-tools path might vary, but usually it's in the PATH
+          # For simplicity, we'll just use the signed APK directly if zipalign is not easily found
+          cp "$APK_PATH" toilet-run-signed.apk
+
+      - name: Sign AAB
+        run: |
+          # Find the AAB
+          AAB_PATH=$(find android/app/build/outputs/bundle/release -name "*.aab" | head -n 1)
+          
+          # Sign it
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA256 -keystore release.keystore -storepass "toiletrun123" "$AAB_PATH" toilet-run-alias
+          
+          cp "$AAB_PATH" toilet-run-signed.aab
+
+      - name: Upload Signed APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: toilet-run-apk
+          path: toilet-run-signed.apk
+
+      - name: Upload Signed AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: toilet-run-aab
+          path: toilet-run-signed.aab
+
+      - name: Upload Keystore
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-keystore
+          path: release.keystore
