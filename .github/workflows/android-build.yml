@@ -55,26 +55,31 @@ jobs:
 
       - name: Sign APK
         run: |
+          # Find build-tools
+          BUILD_TOOLS_VERSION=$(ls $ANDROID_HOME/build-tools | sort -V | tail -n 1)
+          BUILD_TOOLS_PATH="$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION"
+          
           # Find the unsigned APK
-          APK_PATH=$(find android/app/build/outputs/apk/release -name "*-release-unsigned.apk" | head -n 1)
-          if [ -z "$APK_PATH" ]; then
-            APK_PATH=$(find android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          UNSIGNED_APK=$(find android/app/build/outputs/apk/release -name "*-release-unsigned.apk" | head -n 1)
+          if [ -z "$UNSIGNED_APK" ]; then
+            UNSIGNED_APK=$(find android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
           fi
           
-          # Sign it
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA256 -keystore release.keystore -storepass "toiletrun123" "$APK_PATH" toilet-run-alias
+          # Zipalign
+          $BUILD_TOOLS_PATH/zipalign -v 4 "$UNSIGNED_APK" toilet-run-aligned.apk
           
-          # Zipalign (optional but recommended)
-          # Note: build-tools path might vary, but usually it's in the PATH
-          # For simplicity, we'll just use the signed APK directly if zipalign is not easily found
-          cp "$APK_PATH" toilet-run-signed.apk
+          # Sign with apksigner (v2/v3 signature)
+          $BUILD_TOOLS_PATH/apksigner sign --ks release.keystore --ks-pass pass:toiletrun123 --ks-key-alias toilet-run-alias --out toilet-run-signed.apk toilet-run-aligned.apk
+          
+          # Verify
+          $BUILD_TOOLS_PATH/apksigner verify toilet-run-signed.apk
 
       - name: Sign AAB
         run: |
           # Find the AAB
           AAB_PATH=$(find android/app/build/outputs/bundle/release -name "*.aab" | head -n 1)
           
-          # Sign it
+          # Sign it (AAB still uses jarsigner)
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA256 -keystore release.keystore -storepass "toiletrun123" "$AAB_PATH" toilet-run-alias
           
           cp "$AAB_PATH" toilet-run-signed.aab
