@@ -15,11 +15,20 @@ export const AdService = {
    * @param containerId The ID of the HTML element where the banner will be placed.
    */
   showBanner: (containerId: string) => {
-    if (window.startio) {
-      window.startio('banner', {
-        container: containerId,
-        type: 'standard', // 'standard' or 'mrec'
-      });
+    const call = () => {
+      if (window.startio) {
+        window.startio('banner', {
+          container: containerId,
+          type: 'standard',
+        });
+      }
+    };
+
+    if (window.startio && typeof window.startio === 'function') {
+      call();
+    } else {
+      window.startio = window.startio || function() { (window.startio.q = window.startio.q || []).push(arguments) };
+      window.startio.q.push(call);
     }
   },
 
@@ -27,8 +36,17 @@ export const AdService = {
    * Shows an interstitial ad.
    */
   showInterstitial: () => {
-    if (window.startio) {
-      window.startio('interstitial');
+    const call = () => {
+      if (window.startio) {
+        window.startio('interstitial');
+      }
+    };
+
+    if (window.startio && typeof window.startio === 'function') {
+      call();
+    } else {
+      window.startio = window.startio || function() { (window.startio.q = window.startio.q || []).push(arguments) };
+      window.startio.q.push(call);
     }
   },
 };
